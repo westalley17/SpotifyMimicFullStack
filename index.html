@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spotify Mimic</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
+        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+</head>
+
+<body class="bg-dark">
+    <div class="d-flex vh-100 col-12 justify-content-center align-items-center">
+        <!--LOGIN CARD-->
+        <div id="divLogin" class="card col-lg-4">
+            <div class="card-header">
+                <h2>Login to the Spotify Mimic</h2>
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="form-group mt-2">
+                        <label for="txtLoginEmail" class="form-label"> Email </label>
+                        <input placeholder="johndoe@gmail.com" type="email" class="form-control mb-2"
+                            id="txtLoginEmail">
+                        <label for="txtLoginPassword" class="form-label"> Password </label>
+                        <input placeholder="notJohn1234" type="password" class="form-control mb-3"
+                            id="txtLoginPassword">
+                    </div>
+                    <button class="btn btn-primary col-12" id="btnLogin" type="button"> Login </button>
+                    <button class="col-12 btn btn-secondary mt-1 btnToggle" type="button" data-type="login"> Need an
+                        account? </button>
+                </form>
+            </div>
+        </div>
+        <!--REGISTRATION CARD-->
+        <div id="divRegister" class="card col-12 col-md-5 col-lg-4" style="display:none;">
+            <div class="card-header">
+                <h3>Register for the Spotify Mimic</h3>
+            </div>
+            <div class="card-body">
+                <form>
+                    <div class="form-group">
+                        <label for="txtFirstName" class="form-label"> First Name </label>
+                        <input placeholder="John" id="txtFirstName" class="form-control">
+                        <label for="txtLastName" class="form-label"> Last Name </label>
+                        <input placeholder="Smith" id="txtLastName" class="form-control">
+                    </div>
+                    <div class="form-group mt-3">
+                        <label for="txtEmail" class="form-label"> Email </label>
+                        <input placeholder="johndoe@gmail.com" id="txtEmail" class="form-control" type="email">
+                        <label for="txtPassword" class="form-label"> Password </label>
+                        <input placeholder="notJohn1234" id="txtPassword" class="form-control" type="password">
+                    </div>
+                    <button class="col-12 btn btn-primary mt-3" id="btnRegister" type="button"> Register </button>
+                    <button class="col-12 btn btn-secondary mt-1 btnToggle" type="button" data-type="register"> Return
+                        to Login </button>
+                </form>
+            </div>
+        </div>
+        <div id="divMimic">
+            <!--ADD MIMIC HERE LATER-->
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"
+        integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL"
+        crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        $('.btnToggle').on('click', function () {
+            let page = $(this).attr('data-type');
+            if (page == 'login') {
+                $('#divLogin').slideToggle(function () {
+                    $('#divRegister').slideToggle();
+                })
+            } else {
+                $('#divRegister').slideToggle(function () {
+                    $('#divLogin').slideToggle();
+                })
+            }
+        })
+
+        $('#btnRegister').on('click', function () {
+            let blnError = false
+            let strError = ''
+            let strFirstName = $('#txtFirstName').val()
+            let strLastName = $('#txtLastName').val()
+            let strEmail = $('#txtEmail').val()
+            let strPassword = $('#txtPassword').val()
+
+
+            if (strFirstName == '') {
+                blnError = true
+                strError += '<p>First name cannot be blank!</p>'
+            }
+            if (strLastName == '') {
+                blnError = true
+                strError += '<p>Last name cannot be blank!</p>'
+            }
+            if (strEmail == '') {
+                blnError = true
+                strError += '<p>Email cannot be blank!</p>'
+            }
+            if (strPassword == '') {
+                blnError = true
+                strError += '<p>Password cannot be blank!</p>'
+            }
+
+            if (blnError) {
+                Swal.fire({
+                    title: 'Input error!',
+                    html: strError,
+                    icon: 'error'
+                })
+            } 
+            else { // add URL here to my backend to create a User to add to the database.
+                $.post('', { FirstName: strFirstName, LastName: strLastName, Email: strEmail, Password: strPassword }, function (createdAccount) {
+                    if (!createdAccount) {
+                        Swal.fire({
+                            title: 'Error!',
+                            text: createdAccount.Error,
+                            icon: 'error'
+                        })
+                    } else {
+                        // add URL here to my backend to create a session for the User that was just added to the database.
+                        $.post('', { Email: strEmail, Password: strPassword }, function (createdSession) {
+                            if (!createdSession) {
+                                Swal.fire({
+                                    title: 'Error',
+                                    text: createdSession.Error,
+                                    icon: 'error'
+                                })
+                            } else {
+                                sessionStorage.setItem('SessionID', createdSession)
+                                $('#divRegister').slideUp(function () {
+                                    $('#divMimic').slideDown()
+                                })
+                            }
+                        })
+                    }
+                })
+            }
+        })
+
+        $('#btnLogin').on('click', function () {
+            // add URL here to let the User login to the application via backend authentication.
+            $.post('', { Email: $('#txtLoginEmail').val(), Password: $('#txtLoginPassword').val() }, function (LoginResult) {
+                LoginResult = JSON.parse(LoginResult);
+                if (LoginResult.Error) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Login failed',
+                        text: LoginResult.Error
+                    })
+                } else {
+                    sessionStorage.setItem('SessionID', LoginResult.SessionID);
+                    $('#divLogin').slideToggle(function () {
+                        $('#divMimic').slideToggle();
+                    })
+                }
+            })
+        })
+
+    </script>
+</body>
+
+</html>
