@@ -1,20 +1,35 @@
-const express = require('express')
-const app = express()
-
 class User {
-    constructor (email, password, firstname, lastname) {
-        this._email = email
-        this._password = password
-        this._firstname = firstname
-        this._lastname = lastname
+    constructor (firstname, lastname, email, password, sessionID) {
+        this.Firstname = firstname
+        this.Lastname = lastname
+        this.Email = email
+        this.Password = password
+        this.SessionID = sessionID
     }
 
-    getPassword() { return this._password } 
-    getEmail() { return this._email }
-    getFullName() { return this._firstname + ' ' + this._lastname }
+    getPassword() { return this.Password } 
+    getEmail() { return this.Email }
+    getFullName() { return this.Firstname + ' ' + this.Lastname }
 }
 
-app.get('/api/users', (req, res) => {
+const express = require('express')
+const bodyParser = require('body-parser')
+const cors = require('cors')
+const app = express()
+
+app.use(bodyParser.json())
+
+app.use(cors())
+
+app.post('/api/users', (req, res) => {
+    let { FirstName, LastName, Email, Password } = req.body
+    let SessionID = '123-456'
+    let newUser = new User(FirstName, LastName, Email, Password, SessionID)
+    // send to database yada yada
+    res.status(201).json(newUser)
+})
+
+app.post('/api/sessions', (req, res) => {
     
 })
 

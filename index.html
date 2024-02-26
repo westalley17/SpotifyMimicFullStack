@@ -33,7 +33,7 @@
             </div>
         </div>
         <!--REGISTRATION CARD-->
-        <div id="divRegister" class="card col-12 col-md-5 col-lg-4" style="display:none;">
+        <div id="divRegister" class="card col-lg-4" style="display:none;">
             <div class="card-header">
                 <h3>Register for the Spotify Mimic</h3>
             </div>
@@ -57,9 +57,14 @@
                 </form>
             </div>
         </div>
-        <div id="divMimic">
+        <div id="divMimic" class="card col-lg-4" style="display: none;">
             <!--ADD MIMIC HERE LATER-->
-            
+            <div class="card-header">
+                <h2>Spotify Mimic</h2>
+            </div>
+            <div class="card-body">
+                <h3>Success!</h3>
+            </div>
         </div>
     </div>
 
@@ -70,6 +75,12 @@
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        if (sessionStorage.getItem('SessionID')) {
+            $('#divLogin').slideUp(function () {
+                $('#divMimic').slideDown()
+            })
+        }
+
         $('.btnToggle').on('click', function () {
             let page = $(this).attr('data-type');
             if (page == 'login') {
@@ -91,7 +102,6 @@
             let strEmail = $('#txtEmail').val()
             let strPassword = $('#txtPassword').val()
 
-
             if (strFirstName == '') {
                 blnError = true
                 strError += '<p>First name cannot be blank!</p>'
@@ -108,37 +118,40 @@
                 blnError = true
                 strError += '<p>Password cannot be blank!</p>'
             }
-
             if (blnError) {
                 Swal.fire({
                     title: 'Input error!',
                     html: strError,
                     icon: 'error'
                 })
-            } 
-            else { // add URL here to my backend to create a User to add to the database.
-                $.post('', { FirstName: strFirstName, LastName: strLastName, Email: strEmail, Password: strPassword }, function (createdAccount) {
-                    if (!createdAccount) {
+            }
+            else {
+                // This makes a call to the users endpoint, sending in all the stuff needed to register an account
+                $.ajax({
+                    url: 'http://localhost:6969/api/users',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        FirstName: strFirstName,
+                        LastName: strLastName,
+                        Email: strEmail,
+                        Password: strPassword
+                    }),
+                    success: function (createdAccount) {
+                        sessionStorage.setItem('SessionID', createdAccount.SessionID)
+                        Swal.fire({
+                            title: 'Successful account creation!',
+                            icon: 'success'
+                        })
+                        $('#divRegister').slideUp(function() {
+                            $('#divLogin').slideDown()
+                        })
+                    },
+                    error: function () {
                         Swal.fire({
                             title: 'Error!',
                             text: createdAccount.Error,
                             icon: 'error'
-                        })
-                    } else {
-                        // add URL here to my backend to create a session for the User that was just added to the database.
-                        $.post('', { Email: strEmail, Password: strPassword }, function (createdSession) {
-                            if (!createdSession) {
-                                Swal.fire({
-                                    title: 'Error',
-                                    text: createdSession.Error,
-                                    icon: 'error'
-                                })
-                            } else {
-                                sessionStorage.setItem('SessionID', createdSession)
-                                $('#divRegister').slideUp(function () {
-                                    $('#divMimic').slideDown()
-                                })
-                            }
                         })
                     }
                 })
@@ -146,22 +159,48 @@
         })
 
         $('#btnLogin').on('click', function () {
-            // add URL here to let the User login to the application via backend authentication.
-            $.post('', { Email: $('#txtLoginEmail').val(), Password: $('#txtLoginPassword').val() }, function (LoginResult) {
-                LoginResult = JSON.parse(LoginResult);
-                if (LoginResult.Error) {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Login failed',
-                        text: LoginResult.Error
-                    })
-                } else {
-                    sessionStorage.setItem('SessionID', LoginResult.SessionID);
-                    $('#divLogin').slideToggle(function () {
-                        $('#divMimic').slideToggle();
-                    })
-                }
-            })
+            let blnError = false
+            let strError = ''
+            let strEmail = $('#txtLoginEmail').val()
+            let strPassword = $('#txtLoginPassword').val()
+
+            if (strEmail == '') {
+                blnError = true
+                strError += '<p>Email cannot be blank!</p>'
+            }
+            if (strPassword == '') {
+                blnError = true
+                strError += '<p>Password cannot be blank!</p>'
+            }
+            if (blnError) {
+                Swal.fire({
+                    title: 'Input error!',
+                    html: strError,
+                    icon: 'error'
+                })
+            }
+            else {
+                $.ajax({
+                    url: 'http://localhost:6969/api/sessions',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        Email: strEmail,
+                        Password: strPassword
+                    }),
+                    success: function (createdSession) {
+                        $('#divLogin').slideUp(function () {
+                            $('#divMimic').slideDown()
+                        })
+                    },
+                    error: function () {
+                        Swal.fire({
+                            title: 'Error!',
+                            icon: 'error'
+                        })
+                    }
+                })
+            }
         })
 
     </script>
