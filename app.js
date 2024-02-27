@@ -22,7 +22,7 @@ app.use(bodyParser.json())
 
 app.use(cors())
 
-const pool = mariadb.createPool({
+const userPool = mariadb.createPool({
     host: 'localhost',
     port: 3306,
     user: 'root',
@@ -34,8 +34,8 @@ const pool = mariadb.createPool({
 async function createUserTable() {
     let conn;
     try {
-        conn = await pool.getConnection()
-        const table = await conn.query('CREATE table USERS(FirstName varchar(50) primary key, LastName varchar(50), Email varchar(100), Password varchar(50), SessionID varchar(10));')
+        conn = await userPool.getConnection()
+        const table = await conn.query('CREATE table USERS(FirstName varchar(50), LastName varchar(50), Email varchar(100) primary key, Password varchar(50), SessionID varchar(10));')
     } catch (error) {
         console.log(error)
     } finally {
@@ -46,7 +46,7 @@ async function createUserTable() {
 async function addUser(newUser) {
     let conn;
     try {
-        conn = await pool.getConnection()
+        conn = await userPool.getConnection()
         const user = await conn.query(`INSERT into USERS values ('${newUser.FirstName}', '${newUser.LastName}', '${newUser.Email}', '${newUser.Password}', '${newUser.SessionID}');`)
     } catch (error) {
         console.log(error)
@@ -68,7 +68,7 @@ app.post('/api/sessions', (req, res) => {
     
 })
 
-const port = app.env.port || 3000;
+const port = 3000;
 
 app.listen(port, () => {
     console.log(`Listening on port ${port}...`)
