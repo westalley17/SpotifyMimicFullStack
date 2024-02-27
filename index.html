@@ -95,7 +95,6 @@
         })
 
         $('#btnRegister').on('click', function () {
-            let blnError = false
             let strError = ''
             let strFirstName = $('#txtFirstName').val()
             let strLastName = $('#txtLastName').val()
@@ -103,22 +102,18 @@
             let strPassword = $('#txtPassword').val()
 
             if (strFirstName == '') {
-                blnError = true
                 strError += '<p>First name cannot be blank!</p>'
             }
             if (strLastName == '') {
-                blnError = true
                 strError += '<p>Last name cannot be blank!</p>'
             }
             if (strEmail == '') {
-                blnError = true
                 strError += '<p>Email cannot be blank!</p>'
             }
             if (strPassword == '') {
-                blnError = true
                 strError += '<p>Password cannot be blank!</p>'
             }
-            if (blnError) {
+            if (strError) {
                 Swal.fire({
                     title: 'Input error!',
                     html: strError,

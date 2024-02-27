@@ -55,6 +55,8 @@ async function addUser(newUser) {
     }
 }
 
+// createUserTable()
+
 app.post('/api/users', (req, res) => {
     let { FirstName, LastName, Email, Password } = req.body
     let SessionID = '123-456'
