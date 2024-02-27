@@ -36,7 +36,6 @@ async function createUserTable() {
     try {
         conn = await pool.getConnection()
         const table = await conn.query('CREATE table USERS(FirstName varchar(50) primary key, LastName varchar(50), Email varchar(100), Password varchar(50), SessionID varchar(10));')
-        console.log(table)
     } catch (error) {
         console.log(error)
     } finally {
@@ -49,7 +48,6 @@ async function addUser(newUser) {
     try {
         conn = await pool.getConnection()
         const user = await conn.query(`INSERT into USERS values ('${newUser.FirstName}', '${newUser.LastName}', '${newUser.Email}', '${newUser.Password}', '${newUser.SessionID}');`)
-        console.log(user)
     } catch (error) {
         console.log(error)
     } finally {
@@ -63,7 +61,6 @@ app.post('/api/users', (req, res) => {
     let newUser = new User(FirstName, LastName, Email, Password, SessionID)
     // send to database yada yada
     addUser(newUser)
-
     res.status(201).json(newUser)
 })
 
@@ -71,6 +68,8 @@ app.post('/api/sessions', (req, res) => {
     
 })
 
-app.listen(3000, () => {
-    console.log('Listening on port 3000...')
+const port = app.env.port || 3000;
+
+app.listen(port, () => {
+    console.log(`Listening on port ${port}...`)
 })
