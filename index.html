@@ -128,7 +128,7 @@
             else {
                 // This makes a call to the users endpoint, sending in all the stuff needed to register an account
                 $.ajax({
-                    url: 'http://localhost:6969/api/users',
+                    url: 'http://localhost:3000/api/users',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
@@ -181,7 +181,7 @@
             }
             else {
                 $.ajax({
-                    url: 'http://localhost:6969/api/sessions',
+                    url: 'http://localhost:3000/api/sessions',
                     type: 'POST',
                     contentType: 'application/json',
                     data: JSON.stringify({
