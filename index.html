@@ -62,8 +62,8 @@
             <div class="card-header">
                 <h2>Spotify Mimic</h2>
             </div>
-            <div class="card-body">
-                <h3>Success!</h3>
+            <div id="divMimicBody" class="card-body">
+
             </div>
         </div>
     </div>
@@ -75,12 +75,20 @@
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        var strBaseHTML = '<div class="card col-12"><div class="card-header"><h4>Your library</h4></div><div class="card-body" id="divCardLibrary"></div></div>'
+
+        // This is ran on page load.
         if (sessionStorage.getItem('SessionID')) {
+            $('#divMimicBody').append(strBaseHTML)
+            $(document).ready(function () {
+                $('#divCardLibrary').append('<p>These are your songs</p>')
+            })
             $('#divLogin').slideUp(function () {
                 $('#divMimic').slideDown()
             })
         }
 
+        // This allows us to go between the two cards.
         $('.btnToggle').on('click', function () {
             let page = $(this).attr('data-type');
             if (page == 'login') {
@@ -94,6 +102,7 @@
             }
         })
 
+        // takes input and sends it to backend to insert into MariaDB.
         $('#btnRegister').on('click', function () {
             let strError = ''
             let strFirstName = $('#txtFirstName').val()
@@ -138,7 +147,7 @@
                             title: 'Successful account creation!',
                             icon: 'success'
                         })
-                        $('#divRegister').slideUp(function() {
+                        $('#divRegister').slideUp(function () {
                             $('#divLogin').slideDown()
                         })
                     },
@@ -153,6 +162,7 @@
             }
         })
 
+        // take input and "logs in" to user's account where (soon) all of their songs will be.
         $('#btnLogin').on('click', function () {
             let strError = ''
             let strEmail = $('#txtLoginEmail').val()
@@ -173,21 +183,29 @@
             }
             else {
                 $.ajax({
-                    url: 'http://localhost:3000/api/sessions',
-                    type: 'POST',
+                    url: 'http://localhost:3000/api/users?Email=' + strEmail + '&Password=' + strPassword,
+                    type: 'GET',
                     contentType: 'application/json',
                     data: JSON.stringify({
                         Email: strEmail,
                         Password: strPassword
                     }),
-                    success: function (createdSession) {
+                    success: function (LoginAccount) {
+                        sessionStorage.setItem('SessionID', LoginAccount[0].SessionID)
+                        $('#divMimicBody').append(strBaseHTML)
+                        $(document).ready(function () {
+                            $('#divCardLibrary').append('<p>These are your songs</p>')
+                        })
                         $('#divLogin').slideUp(function () {
                             $('#divMimic').slideDown()
                         })
                     },
                     error: function () {
+                        // incorrect password, empty field
+                        $('#txtLoginPassword').val('')
+
                         Swal.fire({
-                            title: 'Error!',
+                            title: 'Incorrect password!',
                             icon: 'error'
                         })
                     }

@@ -35,7 +35,7 @@ async function createUserTable() {
     let conn;
     try {
         conn = await userPool.getConnection()
-        const table = await conn.query('CREATE table USERS(FirstName varchar(50), LastName varchar(50), Email varchar(100) primary key, Password varchar(50), SessionID varchar(10));')
+        const table = await conn.query('create table USERS(FirstName varchar(50), LastName varchar(50), Email varchar(100) primary key, Password varchar(50), SessionID varchar(10));')
     } catch (error) {
         console.log(error)
     } finally {
@@ -47,7 +47,20 @@ async function addUser(newUser) {
     let conn;
     try {
         conn = await userPool.getConnection()
-        const user = await conn.query(`INSERT into USERS values ('${newUser.FirstName}', '${newUser.LastName}', '${newUser.Email}', '${newUser.Password}', '${newUser.SessionID}');`)
+        const user = await conn.query(`insert into USERS values ('${newUser.FirstName}', '${newUser.LastName}', '${newUser.Email}', '${newUser.Password}', '${newUser.SessionID}');`)
+    } catch (error) {
+        console.log(error)
+    } finally {
+        if(conn) conn.release()
+    }
+}
+
+// Partially done validating user credentials for logging in.
+async function getUser(Email, Password) {
+    let conn;
+    try {
+        conn = await userPool.getConnection()
+        return await conn.query(`select * from USERS where Email = '${Email}' and Password = '${Password}';` /*[Email, Password]*/)
     } catch (error) {
         console.log(error)
     } finally {
@@ -57,6 +70,7 @@ async function addUser(newUser) {
 
 // createUserTable()
 
+// This POST takes care of registering an account.
 app.post('/api/users', (req, res) => {
     let { FirstName, LastName, Email, Password } = req.body
     let SessionID = '123-456'
@@ -64,6 +78,21 @@ app.post('/api/users', (req, res) => {
     // send to database yada yada
     addUser(newUser)
     res.status(201).json(newUser)
+})
+
+// This GET takes care of logging into an account.
+app.get('/api/users', async (req, res) => {
+    try {
+        let { Email, Password } = req.query
+        const rows = await getUser(Email, Password)
+        if(rows.length > 0)
+            res.status(200).json(rows)
+        else
+            res.status(401).json(rows)
+
+    } catch (error) {
+        console.log(error)
+    }
 })
 
 app.post('/api/sessions', (req, res) => {
