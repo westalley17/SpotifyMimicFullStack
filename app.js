@@ -9,7 +9,7 @@ class User {
 
     getPassword() { return this.Password } 
     getEmail() { return this.Email }
-    getFullName() { return this.Firstname + ' ' + this.Lastname }
+    getFullName() { return this.FirstName + ' ' + this.LastName }
 }
 
 const express = require('express')
@@ -47,13 +47,15 @@ async function addUser(newUser) {
     let conn;
     try {
         conn = await userPool.getConnection()
-        const user = await conn.query(`insert into USERS values ('${newUser.FirstName}', '${newUser.LastName}', '${newUser.Email}', '${newUser.Password}', '${newUser.SessionID}');`)
+        return await conn.query(`insert into USERS values ('${newUser.FirstName}', '${newUser.LastName}', '${newUser.Email}', '${newUser.Password}', '${newUser.SessionID}');`)
     } catch (error) {
         console.log(error)
     } finally {
         if(conn) conn.release()
     }
 }
+
+//createUserTable()
 
 // Partially done validating user credentials for logging in.
 async function getUser(Email, Password) {
@@ -68,16 +70,21 @@ async function getUser(Email, Password) {
     }
 }
 
-// createUserTable()
-
 // This POST takes care of registering an account.
-app.post('/api/users', (req, res) => {
-    let { FirstName, LastName, Email, Password } = req.body
-    let SessionID = '123-456'
-    let newUser = new User(FirstName, LastName, Email, Password, SessionID)
-    // send to database yada yada
-    addUser(newUser)
-    res.status(201).json(newUser)
+app.post('/api/users', async (req, res) => {
+    try{
+        let { FirstName, LastName, Email, Password } = req.body
+        let SessionID = '124523'
+        let newUser = new User(FirstName, LastName, Email, Password, SessionID)
+        // send to database yada yada
+        let response = await addUser(newUser)
+        if(response)
+            res.status(200).json(newUser)
+        else
+            res.status(401).json(newUser)
+    } catch (error) {
+        console.log(error)
+    }
 })
 
 // This GET takes care of logging into an account.
@@ -86,7 +93,7 @@ app.get('/api/users', async (req, res) => {
         let { Email, Password } = req.query
         const rows = await getUser(Email, Password)
         if(rows.length > 0)
-            res.status(200).json(rows)
+            res.status(200).json(rows[0])
         else
             res.status(401).json(rows)
 

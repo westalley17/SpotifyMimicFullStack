@@ -142,6 +142,7 @@
                         Password: strPassword
                     }),
                     success: function (createdAccount) {
+                        console.log(createdAccount)
                         sessionStorage.setItem('SessionID', createdAccount.SessionID)
                         Swal.fire({
                             title: 'Successful account creation!',
@@ -151,10 +152,11 @@
                             $('#divLogin').slideDown()
                         })
                     },
-                    error: function () {
+                    error: function (response) {
+                        let strError = '<p>Error code: ' + response.status + '</p><p>Error message: ' + response.statusText + '</p>'
                         Swal.fire({
-                            title: 'Error!',
-                            text: createdAccount.Error,
+                            title: 'Error creating account!',
+                            html: strError,
                             icon: 'error'
                         })
                     }
@@ -191,7 +193,7 @@
                         Password: strPassword
                     }),
                     success: function (LoginAccount) {
-                        sessionStorage.setItem('SessionID', LoginAccount[0].SessionID)
+                        sessionStorage.setItem('SessionID', LoginAccount.SessionID)
                         $('#divMimicBody').append(strBaseHTML)
                         $(document).ready(function () {
                             $('#divCardLibrary').append('<p>These are your songs</p>')
@@ -200,10 +202,10 @@
                             $('#divMimic').slideDown()
                         })
                     },
-                    error: function () {
+                    error: function (error) {
                         // incorrect password, empty field
                         $('#txtLoginPassword').val('')
-
+                        console.log(error)
                         Swal.fire({
                             title: 'Incorrect password!',
                             icon: 'error'
