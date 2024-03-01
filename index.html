@@ -143,7 +143,8 @@
                     }),
                     success: function (createdAccount) {
                         console.log(createdAccount)
-                        sessionStorage.setItem('SessionID', createdAccount.SessionID)
+                        if (createdAccount.SessionID) // doesn't allow undefined setItem.
+                            sessionStorage.setItem('SessionID', createdAccount.SessionID)
                         Swal.fire({
                             title: 'Successful account creation!',
                             icon: 'success'
