@@ -4,7 +4,6 @@ class User {
         this.LastName = lastname
         this.Email = email
         this.Password = password
-        this.SessionID = sessionID
     }
 
     getPassword() { return this.Password } 
@@ -13,6 +12,8 @@ class User {
 }
 
 const express = require('express')
+const session = require('express-session')
+const uuid = require('uuid')
 const bodyParser = require('body-parser')
 const cors = require('cors')
 const mariadb = require('mariadb')
@@ -21,6 +22,15 @@ const app = express()
 app.use(bodyParser.json())
 
 app.use(cors())
+
+app.use(session({
+    genid: (req) => {
+        return uuid.v4()
+    },
+    secret: 'e67a3d2a6851d3c7c5a03b78951d0d4c304b51a17d89113d7f7b02b7e63b8091',
+    resave: false,
+    saveUninitialized: true
+}))
 
 const userPool = mariadb.createPool({
     host: 'localhost',
@@ -35,7 +45,7 @@ async function createUserTable() {
     let conn;
     try {
         conn = await userPool.getConnection()
-        const table = await conn.query('create table USERS(FirstName varchar(50), LastName varchar(50), Email varchar(100) primary key, Password varchar(50), SessionID varchar(10));')
+        const table = await conn.query('create table USERS(FirstName varchar(50) not null, LastName varchar(50) not null, Email varchar(100) primary key, Password varchar(50) not null);')
     } catch (error) {
         console.log(error)
     } finally {
@@ -47,7 +57,7 @@ async function addUser(newUser) {
     let conn;
     try {
         conn = await userPool.getConnection()
-        return await conn.query(`insert into USERS values ('${newUser.FirstName}', '${newUser.LastName}', '${newUser.Email}', '${newUser.Password}', '${newUser.SessionID}');`)
+        return await conn.query(`insert into USERS values ('${newUser.FirstName}', '${newUser.LastName}', '${newUser.Email}', '${newUser.Password}');`)
     } catch (error) {
         console.log(error)
     } finally {
@@ -74,8 +84,7 @@ async function getUser(Email, Password) {
 app.post('/api/users', async (req, res) => {
     try{
         let { FirstName, LastName, Email, Password } = req.body
-        let SessionID = '124523'
-        let newUser = new User(FirstName, LastName, Email, Password, SessionID)
+        let newUser = new User(FirstName, LastName, Email, Password)
         // send to database yada yada
         let response = await addUser(newUser)
         if(response)
@@ -93,7 +102,12 @@ app.get('/api/users', async (req, res) => {
         let { Email, Password } = req.query
         const rows = await getUser(Email, Password)
         if(rows.length > 0)
-            res.status(200).json(rows[0])
+        {
+            const SessionID = req.sessionID // generates a new SessionID for our user every login.
+            const user = rows[0]
+            user.SessionID = SessionID
+            res.status(200).json(user)
+        }
         else
             res.status(401).json(rows)
 
@@ -102,11 +116,7 @@ app.get('/api/users', async (req, res) => {
     }
 })
 
-app.post('/api/sessions', (req, res) => {
-    
-})
-
-const port = 3000;
+const port = process.env.port || 3000;
 
 app.listen(port, () => {
     console.log(`Listening on port ${port}...`)
