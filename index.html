@@ -78,15 +78,28 @@
         var strBaseHTML = '<div class="card col-12"><div class="card-header"><h4>Your library</h4></div><div class="card-body" id="divCardLibrary"></div></div>'
 
         // This is run on page load to check the users session.
-        if (sessionStorage.getItem('SessionID')) {
-            $('#divMimicBody').append(strBaseHTML)
-            $(document).ready(function () {
-                $('#divCardLibrary').append('<p>These are your songs</p>')
+
+        $(document).ready(function() {
+            const SessionID = sessionStorage.getItem('SessionID')
+            $.ajax({
+                url: 'http://localhost:3000/api/sessions?SessionID=' + SessionID,
+                type: 'GET',
+                contentType: 'application/json',
+                success: function(result) {
+                    $('#divMimicBody').append(strBaseHTML)
+                    $('#divCardLibrary').append('<p>It worked!</p>')
+                    $('#divLogin').slideUp(function() {
+                        $('#divMimic').slideDown()
+                    })
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'load error!',
+                        icon: 'error'
+                    })
+                }
             })
-            $('#divLogin').slideUp(function () {
-                $('#divMimic').slideDown()
-            })
-        }
+        })
 
         // This allows us to go between the two cards.
         $('.btnToggle').on('click', function () {
@@ -187,10 +200,6 @@
                     url: 'http://localhost:3000/api/users?Email=' + strEmail + '&Password=' + strPassword,
                     type: 'GET',
                     contentType: 'application/json',
-                    data: JSON.stringify({
-                        Email: strEmail,
-                        Password: strPassword
-                    }),
                     success: function (LoginAccount) {
                         sessionStorage.setItem('SessionID', LoginAccount.SessionID)
                         $('#divMimicBody').append(strBaseHTML)
@@ -214,22 +223,16 @@
             }
         })
         // This deletes their SessionID in the database once they close their browser.
-        $(window).on('onunload', function () {
-            const sessionID = sessionStorage.getItem('SessionID')
-            if (sessionID) {
-                $.ajax({
-                    url: 'http://localhost:3000/api/users?SessionID=' + sessionID,
-                    type: 'DELETE',
-                    contentType: 'application/json',
-                    data: JSON.stringify({
-                        SessionID: sessionID
-                    })
-                })
-            }
-        })
-        
+        // $(window).on('unload', function () {
+        //     const sessionID = sessionStorage.getItem('SessionID')
+        //     if (sessionID) {
+        //         const JSONdata = JSON.stringify({ SessionID: sessionID })
+        //         navigator.sendBeacon('http://localhost:3000/api/sessions', JSONdata) // apparently this is a deprecated way of removing session storage but eh, we'll change it later.
+        //     }
+        // })
+
         // 1. Figure out how to call ^THIS^ properly to where it removes the session from the sessions table.
-        
+
 
     </script>
 </body>

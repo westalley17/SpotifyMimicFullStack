@@ -12,13 +12,6 @@ class User {
     getFullName() { return this.FirstName + ' ' + this.LastName }
 }
 
-class Session {
-    constructor(sessionID, idCreateDate) {
-        this.SessionID = sessionID
-        this.IDCreateDate = idCreateDate
-    }
-}
-
 const express = require('express')
 const session = require('express-session')
 const uuid = require('uuid')
@@ -46,7 +39,7 @@ const userPool = mariadb.createPool({
     user: 'root',
     password: 'Mickey2024!',
     database: 'mimic_db',
-    connectionLimit: 5
+    connectionLimit: 50
 })
 
 // function to automatically create users table for me more efficiently.
@@ -67,7 +60,7 @@ async function createSessionsTable() {
     let conn
     try {
         conn = await userPool.getConnection()
-        const sessTable = await conn.query('create table sessions (SessionID char(36) primary key, Email varchar(100) not null, IDCreateDate varchar(50) not null, foreign key(Email) references users(Email));')
+        const sessTable = await conn.query('create table sessions (SessionID char(36) primary key, Email varchar(100) not null, IDCreateDate char(10) not null, foreign key(Email) references users(Email) on delete cascade);')
     } catch (error) {
         console.log(error)
     } finally {
@@ -93,11 +86,35 @@ async function addUser(newUser) {
 //createSessionsTable()
 
 // Returns the rows from MariaDB where password matches the username, aka logging in.
-async function getUser(Email, Password) {
+async function loginUser(Email, Password) {
     let conn
     try {
         conn = await userPool.getConnection()
         return await conn.query(`select * from users where Email = ? and Password = ?;`, [`${Email}`, `${Password}`])
+    } catch (error) {
+        console.log(error)
+    } finally {
+        if(conn) conn.release()
+    }
+}
+
+async function getUser(Email) {
+    let conn
+    try {
+        conn = await userPool.getConnection()
+        return await conn.query(`select * from users where Email = ?;`, [`${Email}`])
+    } catch (error) {
+        console.log(error)
+    } finally {
+        if(conn) conn.release()
+    }
+}
+
+async function getSession(SessionID) {
+    let conn
+    try {
+        conn = await userPool.getConnection()
+        return await conn.query(`select * from sessions where SessionID = ?;`, [`${SessionID}`])
     } catch (error) {
         console.log(error)
     } finally {
@@ -146,7 +163,7 @@ app.post('/api/users', async (req, res) => {
 app.get('/api/users', async (req, res) => {
     try {
         let { Email, Password } = req.query
-        const rows = await getUser(Email, Password)
+        const rows = await loginUser(Email, Password)
         if(rows.length > 0)
         {
             const SessionID = req.sessionID // generates a new SessionID for our user every time login button is used correctly.
@@ -170,9 +187,33 @@ app.get('/api/users', async (req, res) => {
     }
 })
 //!!! TALK TO BURCHFIELD ABOUT HOW TO BETTER HANDLE ALL OF THESE ENDPOINTS TO MATCH UP WITH THEIR DATABASE TABLES!
-app.delete('/api/users', async (req, res) => {
-    let { SessionID } = req.query
-    const response = await removeSession(SessionID)
+// app.delete('/api/users', async (req, res) => {
+//     let { SessionID } = req.query
+//     const response = await removeSession(SessionID)
+// })
+
+// !!! TALK TO BURCHFIELD ABOUT WHAT THE HELL THIS EVEN DOES
+// app.post('/api/sessions', async (req, res) => {
+//     const sessionStore = req.sessionStore
+//     if(sessionStore && sessionStore.sessions) {
+//         const sessionKeys = Object.keys(sessionStore.sessions)
+//         if(sessionKeys.length > 0)
+//         {
+//             const SessionID = sessionKeys[0]
+//             const response = await removeSession(SessionID)
+//         }
+//     }
+// })
+
+// This allows us to sign in once and stay signed in with the session.
+app.get('/api/sessions', async (req, res) => {
+    const { SessionID } = req.query
+    const sessionRows = await getSession(SessionID)
+    if(sessionRows.length > 0)
+    {
+        const user = await getUser(sessionRows.Email)
+        res.status(200).json(user)
+    }
 })
 
 const port = process.env.port || 3000;
