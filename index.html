@@ -77,16 +77,29 @@
     <script>
         var strBaseHTML = '<div class="card col-12"><div class="card-header"><h4>Your library</h4></div><div class="card-body" id="divCardLibrary"></div></div>'
 
-        // This is ran on page load.
-        if (sessionStorage.getItem('SessionID')) {
-            $('#divMimicBody').append(strBaseHTML)
-            $(document).ready(function () {
-                $('#divCardLibrary').append('<p>These are your songs</p>')
+        // This is run on page load to check the users session.
+
+        $(document).ready(function() {
+            const SessionID = sessionStorage.getItem('SessionID')
+            $.ajax({
+                url: 'http://localhost:3000/api/sessions?SessionID=' + SessionID,
+                type: 'GET',
+                contentType: 'application/json',
+                success: function(account) {
+                    $('#divMimicBody').append(strBaseHTML)
+                    $('#divCardLibrary').append('<p>It worked!</p>')
+                    $('#divLogin').slideUp(function() {
+                        $('#divMimic').slideDown()
+                    })
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'load error!',
+                        icon: 'error'
+                    })
+                }
             })
-            $('#divLogin').slideUp(function () {
-                $('#divMimic').slideDown()
-            })
-        }
+        })
 
         // This allows us to go between the two cards.
         $('.btnToggle').on('click', function () {
@@ -143,8 +156,6 @@
                     }),
                     success: function (createdAccount) {
                         console.log(createdAccount)
-                        if (createdAccount.SessionID) // doesn't allow undefined setItem.
-                            sessionStorage.setItem('SessionID', createdAccount.SessionID)
                         Swal.fire({
                             title: 'Successful account creation!',
                             icon: 'success'
@@ -189,15 +200,11 @@
                     url: 'http://localhost:3000/api/users?Email=' + strEmail + '&Password=' + strPassword,
                     type: 'GET',
                     contentType: 'application/json',
-                    data: JSON.stringify({
-                        Email: strEmail,
-                        Password: strPassword
-                    }),
                     success: function (LoginAccount) {
                         sessionStorage.setItem('SessionID', LoginAccount.SessionID)
                         $('#divMimicBody').append(strBaseHTML)
                         $(document).ready(function () {
-                            $('#divCardLibrary').append('<p>These are your songs</p>')
+                            $('#divCardLibrary').append('<p>These are your songs</p>') // This will be filled later by actual relevant data to the user.
                         })
                         $('#divLogin').slideUp(function () {
                             $('#divMimic').slideDown()
@@ -215,6 +222,22 @@
                 })
             }
         })
+        //This deletes their SessionID in the database once they close their browser.
+        // $(window).on('beforeunload', function(event) {
+        //     // Check if the page is being closed. "persisted" is true only if the page is refreshed or unfocused but not closed.
+        //     if (event.originalEvent && event.originalEvent.persisted) {
+        //         return;
+        //     }
+        //     // Send the beacon only if the page is being closed
+        //     const sessionID = sessionStorage.getItem('SessionID');
+        //     if (sessionID) {
+        //         const JSONdata = JSON.stringify({ SessionID: sessionID });
+        //         navigator.sendBeacon('http://localhost:3000/api/sessions', JSONdata);
+        //     }
+        // });
+
+        // 1. Figure out how to call ^THIS^ properly to where it removes the session from the sessions table.
+
 
     </script>
 </body>
