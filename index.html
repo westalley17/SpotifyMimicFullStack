@@ -8,7 +8,16 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
         integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
 </head>
-
+<!--
+    SPOTIFY MIMIC! 
+    This mimic will entail the following functionality:
+    1. It will be able to register an account that will be linked to a future database with their library of songs.
+    2. It will be able to log in to said account.
+    3. It's dashboard (once logged in) will populate with tables filled with the user's library/libraries. (multiple pages? tables?)
+    4. The user will then be able to sort their library and song queue however they please. (going to use datatables.net for this)
+    5. The user will also be able to delete songs from their library(ies) at will which will update their database records. (PUT)
+    6. The user will be able to ADD songs by choosing from a tabled list that is returned from a GET.
+-->
 <body class="bg-dark">
     <div class="d-flex vh-100 col-12 justify-content-center align-items-center">
         <!--LOGIN CARD-->
@@ -57,8 +66,8 @@
                 </form>
             </div>
         </div>
+        <!--Spotify Mimic Dashboard-->
         <div id="divMimic" class="card col-lg-4" style="display: none;">
-            <!--ADD MIMIC HERE LATER-->
             <div class="card-header">
                 <h2>Spotify Mimic</h2>
             </div>
@@ -77,7 +86,11 @@
     <script>
         var strBaseHTML = '<div class="card col-12"><div class="card-header"><h4>Your library</h4></div><div class="card-body" id="divCardLibrary"></div></div>'
 
-        // This is run on page load to check the users session.
+        /*
+            Function: to run on page load to validate a user's session
+                This sends a GET request to the sessions endpoint to validate that 1) the session is still valid 
+                and 2) the SessionID matches with the user.
+        */
 
         $(document).ready(function() {
             const SessionID = sessionStorage.getItem('SessionID')
@@ -92,16 +105,17 @@
                         $('#divMimic').slideDown()
                     })
                 },
-                error: function() {
-                    Swal.fire({
-                        title: 'load error!',
-                        icon: 'error'
-                    })
+                error: function(error) { // this only happens if the page is loaded without the backend running (since it calls an endpoint, but isn't able to return anything)
+                    console.log('No SessionID found!')
                 }
             })
         })
 
-        // This allows us to go between the two cards.
+        /*
+            Function: to toggle back and forth between the register and login cards.
+                Nothing special.
+        */
+        
         $('.btnToggle').on('click', function () {
             let page = $(this).attr('data-type');
             if (page == 'login') {
@@ -115,7 +129,12 @@
             }
         })
 
-        // takes input and sends it to backend to insert into MariaDB.
+        /*
+            Function: An event listener for the btnRegister button.
+                This validates the user's input on the frontend to make sure that their information
+                is not blank. It then sends a POST to the backend that makes sure that the email
+                (which is the primary key for the users table) is unique. Otherwise, it will alert the user.
+        */
         $('#btnRegister').on('click', function () {
             let strError = ''
             let strFirstName = $('#txtFirstName').val()
@@ -176,7 +195,13 @@
             }
         })
 
-        // take input and "logs in" to user's account where (soon) all of their songs will be.
+        /*
+            Function: An event listener for the btnLogin button.
+                This validates the user's input on the frontend to make sure that it is not blank.
+                It then sends a GET to the users endpoint, passing in their email and password.
+                If they provided the right password to the right email, a 201 response will be returned,
+                and they are then able to proceed to the mimic.
+        */
         $('#btnLogin').on('click', function () {
             let strError = ''
             let strEmail = $('#txtLoginEmail').val()
@@ -222,21 +247,21 @@
                 })
             }
         })
-        //This deletes their SessionID in the database once they close their browser.
-        // $(window).on('beforeunload', function(event) {
-        //     // Check if the page is being closed. "persisted" is true only if the page is refreshed or unfocused but not closed.
-        //     if (event.originalEvent && event.originalEvent.persisted) {
-        //         return;
-        //     }
-        //     // Send the beacon only if the page is being closed
-        //     const sessionID = sessionStorage.getItem('SessionID');
-        //     if (sessionID) {
-        //         const JSONdata = JSON.stringify({ SessionID: sessionID });
-        //         navigator.sendBeacon('http://localhost:3000/api/sessions', JSONdata);
-        //     }
-        // });
 
-        // 1. Figure out how to call ^THIS^ properly to where it removes the session from the sessions table.
+        /*
+            Function: An event listener for the btnLogout button.
+                This button logs the user out by first deleting their sessionID from the database.
+                It then proceeds to remove it from SessionStorage on the frontend.
+        */
+        $('#btnLogout').on('click',function(){
+            let strSessionID = sessionStorage.getItem('SessionID');
+            // pass to ajax delete
+            
+            // then do this
+            sessionStorage.removeItem('SessionID');
+        })
+
+        // download MySQL Workbench
 
 
     </script>

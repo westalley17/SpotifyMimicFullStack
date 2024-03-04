@@ -47,7 +47,7 @@ async function createUsersTable() {
     let conn;
     try {
         conn = await userPool.getConnection()
-        const userTable = await conn.query('create table users (FirstName varchar(50) not null, LastName varchar(50) not null, Email varchar(100) primary key, Password varchar(50) not null);')
+        const userTable = await conn.query('CREATE table USERS (FirstName varchar(50) not null, LastName varchar(50) not null, Email varchar(100) primary key, Password varchar(50) not null);')
     } catch (error) {
         console.log(error)
     } finally {
@@ -60,7 +60,7 @@ async function createSessionsTable() {
     let conn
     try {
         conn = await userPool.getConnection()
-        const sessTable = await conn.query('create table sessions (SessionID char(36) primary key, Email varchar(100) not null, IDCreateDate char(10) not null, foreign key(Email) references users(Email) on delete cascade);')
+        const sessTable = await conn.query('CREATE table SESSIONS (SessionID char(36) primary key, Email varchar(100) not null, IDCreateDate varchar(30) not null, foreign key(Email) references users(Email) on delete cascade);')
     } catch (error) {
         console.log(error)
     } finally {
@@ -73,7 +73,7 @@ async function addUser(newUser) {
     let conn
     try {
         conn = await userPool.getConnection()
-        return await conn.query(`insert into users values (?, ?, ?, ?);`, 
+        return await conn.query(`INSERT INTO USERS values (?, ?, ?, ?);`, 
         [`${newUser.FirstName}`, `${newUser.LastName}`, `${newUser.Email}`, `${newUser.Password}`])
     } catch (error) {
         console.log(error)
@@ -82,15 +82,15 @@ async function addUser(newUser) {
     }
 }
 
-//createUsersTable()
-//createSessionsTable()
+// createUsersTable()
+// createSessionsTable()
 
 // Returns the rows from MariaDB where password matches the username, aka logging in.
 async function loginUser(Email, Password) {
     let conn
     try {
         conn = await userPool.getConnection()
-        return await conn.query(`select * from users where Email = ? and Password = ?;`, [`${Email}`, `${Password}`])
+        return await conn.query(`SELECT * FROM USERS WHERE Email = ? and Password = ?;`, [`${Email}`, `${Password}`])
     } catch (error) {
         console.log(error)
     } finally {
@@ -102,7 +102,7 @@ async function getUser(Email) {
     let conn
     try {
         conn = await userPool.getConnection()
-        return await conn.query(`select * from users where Email = ?;`, [`${Email}`])
+        return await conn.query(`SELECT * FROM USERS WHERE Email = ?;`, [`${Email}`])
     } catch (error) {
         console.log(error)
     } finally {
@@ -114,7 +114,7 @@ async function getSession(SessionID) {
     let conn
     try {
         conn = await userPool.getConnection()
-        return await conn.query(`select * from sessions where SessionID = ?;`, [`${SessionID}`])
+        return await conn.query(`SELECT * FROM SESSIONS WHERE SessionID = ?;`, [`${SessionID}`])
     } catch (error) {
         console.log(error)
     } finally {
@@ -123,11 +123,11 @@ async function getSession(SessionID) {
 }
 
 // adds a new session to the sessions table.
-async function addSession(SessionID, Email, IDCreateDate) {
+async function addSession(SessionID, Email) {
     let conn
     try {
         conn = await userPool.getConnection()
-        return await conn.query(`insert into sessions values (?, ?, ?);`, [`${SessionID}`, `${Email}`, `${IDCreateDate}`])
+        return await conn.query(`INSERT INTO SESSIONS values (?, ?, CURRDATE());`, [`${SessionID}`, `${Email}`])
     } catch (error) {
         console.log(error)
     }
@@ -137,7 +137,7 @@ async function removeSession(SessionID) {
     let conn
     try {
         conn = await userPool.getConnection()
-        return await conn.query(`delete from sessions where SessionID = ?;`, [`${SessionID}`])
+        return  conn.query(`DELETE FROM SESSIONS WHERE SessionID = ?;`, [`${SessionID}`])
     } catch (error) {
         console.log(error)
     }
@@ -169,14 +169,7 @@ app.get('/api/users', async (req, res) => {
             const SessionID = req.sessionID // generates a new SessionID for our user every time login button is used correctly.
             const user = rows[0]
             user.SessionID = SessionID
-            // This is how Chat told me to get the date in a nice YYYY-MM-DD format :)
-            const currentDate = new Date(Date.now())
-            const year = currentDate.getFullYear()
-            const month = String(currentDate.getMonth() + 1).padStart(2, '0')
-            const day = String(currentDate.getDate()).padStart(2, '0')
-            //
-            const IDCreateDate = `${year}-${month}-${day}`
-            const session = await addSession(SessionID, Email, IDCreateDate)
+            const session = await addSession(SessionID, Email)
             res.status(200).json(user)
         }
         else
@@ -186,14 +179,12 @@ app.get('/api/users', async (req, res) => {
         console.log(error)
     }
 })
-//!!! TALK TO BURCHFIELD ABOUT HOW TO BETTER HANDLE ALL OF THESE ENDPOINTS TO MATCH UP WITH THEIR DATABASE TABLES!
-// app.delete('/api/users', async (req, res) => {
-//     let { SessionID } = req.query
-//     const response = await removeSession(SessionID)
-// })
 
-// !!! TALK TO BURCHFIELD ABOUT WHAT THE HELL THIS EVEN DOES
+
+// MAKE THIS A DELETE THAT GETS CALLED FROM A LOGOUT BUTTON!!!!
+
 // app.post('/api/sessions', async (req, res) => {
+//     console.log(req)
 //     const sessionStore = req.sessionStore
 //     if(sessionStore && sessionStore.sessions) {
 //         const sessionKeys = Object.keys(sessionStore.sessions)
