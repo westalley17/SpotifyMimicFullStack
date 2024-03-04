@@ -85,7 +85,7 @@
                 url: 'http://localhost:3000/api/sessions?SessionID=' + SessionID,
                 type: 'GET',
                 contentType: 'application/json',
-                success: function(result) {
+                success: function(account) {
                     $('#divMimicBody').append(strBaseHTML)
                     $('#divCardLibrary').append('<p>It worked!</p>')
                     $('#divLogin').slideUp(function() {
@@ -222,14 +222,19 @@
                 })
             }
         })
-        // This deletes their SessionID in the database once they close their browser.
-        // $(window).on('unload', function () {
-        //     const sessionID = sessionStorage.getItem('SessionID')
-        //     if (sessionID) {
-        //         const JSONdata = JSON.stringify({ SessionID: sessionID })
-        //         navigator.sendBeacon('http://localhost:3000/api/sessions', JSONdata) // apparently this is a deprecated way of removing session storage but eh, we'll change it later.
+        //This deletes their SessionID in the database once they close their browser.
+        // $(window).on('beforeunload', function(event) {
+        //     // Check if the page is being closed. "persisted" is true only if the page is refreshed or unfocused but not closed.
+        //     if (event.originalEvent && event.originalEvent.persisted) {
+        //         return;
         //     }
-        // })
+        //     // Send the beacon only if the page is being closed
+        //     const sessionID = sessionStorage.getItem('SessionID');
+        //     if (sessionID) {
+        //         const JSONdata = JSON.stringify({ SessionID: sessionID });
+        //         navigator.sendBeacon('http://localhost:3000/api/sessions', JSONdata);
+        //     }
+        // });
 
         // 1. Figure out how to call ^THIS^ properly to where it removes the session from the sessions table.
 

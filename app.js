@@ -211,7 +211,7 @@ app.get('/api/sessions', async (req, res) => {
     const sessionRows = await getSession(SessionID)
     if(sessionRows.length > 0)
     {
-        const user = await getUser(sessionRows.Email)
+        const user = await getUser(sessionRows[0].Email)
         res.status(200).json(user)
     }
 })
