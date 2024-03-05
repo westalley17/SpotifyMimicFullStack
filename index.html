@@ -72,7 +72,17 @@
                 <h2>Spotify Mimic</h2>
             </div>
             <div id="divMimicBody" class="card-body">
+                <div class="card col-12">
+                    <div class="card-header">
+                        <h4>Your Library</h4>
+                    </div>
+                    <div class="card-body" id="divCardLibrary">
 
+                    </div>
+                </div>
+            </div>
+            <div id="divMimicFooter" class="card-footer">
+                <button id="btnLogout" class="col-12 btn btn-danger mt-2">Logout</button>
             </div>
         </div>
     </div>
@@ -84,7 +94,6 @@
         crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        var strBaseHTML = '<div class="card col-12"><div class="card-header"><h4>Your library</h4></div><div class="card-body" id="divCardLibrary"></div></div>'
 
         /*
             Function: to run on page load to validate a user's session
@@ -94,21 +103,22 @@
 
         $(document).ready(function() {
             const SessionID = sessionStorage.getItem('SessionID')
-            $.ajax({
-                url: 'http://localhost:3000/api/sessions?SessionID=' + SessionID,
-                type: 'GET',
-                contentType: 'application/json',
-                success: function(account) {
-                    $('#divMimicBody').append(strBaseHTML)
-                    $('#divCardLibrary').append('<p>It worked!</p>')
-                    $('#divLogin').slideUp(function() {
-                        $('#divMimic').slideDown()
-                    })
-                },
-                error: function(error) { // this only happens if the page is loaded without the backend running (since it calls an endpoint, but isn't able to return anything)
-                    console.log('No SessionID found!')
-                }
-            })
+            if(SessionID) {
+                $.ajax({
+                    url: 'http://localhost:3000/api/sessions?SessionID=' + SessionID,
+                    type: 'GET',
+                    contentType: 'application/json',
+                    success: function(account) {
+                        //$('#divCardLibrary').append() // APPEND THEIR LIBRARY!
+                        $('#divLogin').slideUp(function() {
+                            $('#divMimic').slideDown()
+                        })
+                    },
+                    error: function(error) {
+                        console.log(error)
+                    }
+                })
+            }   
         })
 
         /*
@@ -222,15 +232,16 @@
             }
             else {
                 $.ajax({
-                    url: 'http://localhost:3000/api/users?Email=' + strEmail + '&Password=' + strPassword,
-                    type: 'GET',
+                    url: 'http://localhost:3000/api/sessions',
+                    type: 'POST',
                     contentType: 'application/json',
+                    data: JSON.stringify({
+                        Email: strEmail,
+                        Password: strPassword
+                    }),
                     success: function (LoginAccount) {
                         sessionStorage.setItem('SessionID', LoginAccount.SessionID)
-                        $('#divMimicBody').append(strBaseHTML)
-                        $(document).ready(function () {
-                            $('#divCardLibrary').append('<p>These are your songs</p>') // This will be filled later by actual relevant data to the user.
-                        })
+                            //$('#divCardLibrary').append() // This will be filled later by actual relevant data to the user.
                         $('#divLogin').slideUp(function () {
                             $('#divMimic').slideDown()
                         })
@@ -256,9 +267,30 @@
         $('#btnLogout').on('click',function(){
             let strSessionID = sessionStorage.getItem('SessionID');
             // pass to ajax delete
-            
+            $.ajax({
+                url: 'http://localhost:3000/api/sessions?SessionID=' + strSessionID,
+                type: 'DELETE',
+                contentType: 'application/json',
+                success: function() {
+                    Swal.fire({
+                        title: 'Deleted Session!',
+                        text: 'Successfully removed your session!',
+                        icon: 'success'
+                    })
+                },
+                error: function() {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: 'Error when removing session id!',
+                        icon: 'error'
+                    })
+                }
+            })
             // then do this
             sessionStorage.removeItem('SessionID');
+            $('#divMimic').slideUp(function() {
+                $('#divLogin').slideDown()
+            })
         })
 
         // download MySQL Workbench
