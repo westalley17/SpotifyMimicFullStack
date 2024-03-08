@@ -136,6 +136,8 @@ async function addSession(SessionID, Email) {
         return await conn.query(`INSERT INTO TBL_SESSIONS values (?, ?, CURDATE());`, [`${SessionID}`, `${Email}`])
     } catch (error) {
         console.log(error)
+    } finally {
+        if(conn) conn.release()
     }
 }
 
@@ -147,6 +149,8 @@ async function removeSession(SessionID) {
         return conn.query(`DELETE FROM TBL_SESSIONS WHERE SessionID = ?;`, [`${SessionID}`])
     } catch (error) {
         console.log(error)
+    } finally {
+        if(conn) conn.release()
     }
 }
 
