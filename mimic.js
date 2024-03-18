@@ -85,9 +85,12 @@ async function addUser(newUser) {
         if(conn) conn.release()
     }
 }
+async function createTables(){
+    const tblUsers = await createUsersTable()
+    const tblSessions = await createSessionsTable()
+}
 
-// createUsersTable()
-//createSessionsTable()
+createTables()
 
 // Returns the rows from MariaDB where password matches the username, aka logging in.
 async function loginUser(Email, Password) {
