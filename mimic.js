@@ -19,12 +19,15 @@ const session = require('express-session')
 const uuid = require('uuid')
 const bodyParser = require('body-parser')
 const cors = require('cors')
-const mariadb = require('mariadb')
+const sqlite3 = require('sqlite3').verbose()
+const dbSource = "mimic.db"
 const app = express()
 
 app.use(bodyParser.json())
 
 app.use(cors())
+
+const db = new sqlite3.Database(dbSource)
 
 // This uses a secret to generate a SessionID for us.
 app.use(session({
@@ -36,122 +39,90 @@ app.use(session({
     saveUninitialized: true
 }))
 
-// This creates our pool that we will use throughout the backend to communicate to the database.
-const userPool = mariadb.createPool({
-    host: 'localhost',
-    port: 3306,
-    user: 'root',
-    password: 'Mickey2024!',
-    database: 'mimic_db',
-    connectionLimit: 50 // idk, 50 seemed like it be enough
+// Creates necessary tables ONLY if they don't already exist.
+db.serialize(() => {
+    db.run('CREATE TABLE IF NOT EXISTS TBL_USERS (FirstName TEXT, LastName TEXT, Email TEXT PRIMARY KEY, Password TEXT)')
+    db.run('CREATE TABLE IF NOT EXISTS TBL_SESSIONS (SessionID TEXT PRIMARY KEY, Email TEXT, IDCreateDate TEXT, FOREIGN KEY(Email) REFERENCES TBL_USERS(Email) ON DELETE CASCADE)')
 })
 
-// function to automatically create users table for me more efficiently.
-async function createUsersTable() {
-    let conn;
-    try {
-        conn = await userPool.getConnection()
-        const userTable = await conn.query('CREATE table TBL_USERS (FirstName varchar(50) not null, LastName varchar(50) not null, Email varchar(100) primary key, Password varchar(50) not null);')
-    } catch (error) {
-        console.log(error)
-    } finally {
-        if(conn) conn.release()
-    }
-}
-
-// function to automatically create sessions table for me more efficiently.
-async function createSessionsTable() {
-    let conn
-    try {
-        conn = await userPool.getConnection()
-        const sessTable = await conn.query('CREATE table TBL_SESSIONS (SessionID char(36) primary key, Email varchar(100) not null, IDCreateDate char(10) not null, foreign key(Email) references TBL_USERS(Email) on delete cascade);')
-    } catch (error) {
-        console.log(error)
-    } finally {
-        if(conn) conn.release()
-    }
-}
-
-// this returns truthy response from MariaDB to the register POST below.
+// this returns truthy response from SQLite to the register POST below.
 async function addUser(newUser) {
-    let conn
-    try {
-        conn = await userPool.getConnection()
-        return await conn.query(`INSERT INTO TBL_USERS values (?, ?, ?, ?);`, 
-        [`${newUser.FirstName}`, `${newUser.LastName}`, `${newUser.Email}`, `${newUser.Password}`])
-    } catch (error) {
-        console.log(error)
-    } finally {
-        if(conn) conn.release()
-    }
+    return new Promise((resolve, reject) => {
+        db.run('INSERT INTO TBL_USERS VALUES (?, ?, ?, ?)', 
+        [newUser.FirstName, newUser.LastName, newUser.Email, newUser.Password],
+        (err) => {
+            if (err)
+                reject(err)
+            else 
+                resolve()
+        })
+    })
 }
 
-// createUsersTable()
-//createSessionsTable()
-
-// Returns the rows from MariaDB where password matches the username, aka logging in.
+// Returns the rows from SQLite where password matches the username, aka logging in.
 async function loginUser(Email, Password) {
-    let conn
-    try {
-        conn = await userPool.getConnection()
-        return await conn.query(`SELECT * FROM TBL_USERS WHERE Email = ? and Password = ?;`, [`${Email}`, `${Password}`])
-    } catch (error) {
-        console.log(error)
-    } finally {
-        if(conn) conn.release()
-    }
+    return new Promise((resolve, reject) => {
+        db.all('SELECT * FROM TBL_USERS WHERE Email = ? AND Password = ?', [Email, Password],
+        (err, rows) => {
+            if (err) 
+                reject(err)
+            else 
+                resolve(rows)
+        })
+    })
 }
 
 // Returns the all the sessions associated with a given Email.
 async function getUser(Email) {
-    let conn
-    try {
-        conn = await userPool.getConnection()
-        return await conn.query(`SELECT * FROM TBL_USERS WHERE Email = ?;`, [`${Email}`])
-    } catch (error) {
-        console.log(error)
-    } finally {
-        if(conn) conn.release()
-    }
+    return new Promise((resolve, reject) => {
+        db.all('SELECT * FROM TBL_USERS WHERE Email = ?', [Email],
+        (err, rows) => {
+            if (err) 
+                reject(err)
+            else 
+                resolve(rows)
+        })
+    })
 }
 
 // Returns one session that we will LATER use to see if it is still valid. (Go on a day-by-day basis.)
 async function getSession(SessionID) {
-    let conn
-    try {
-        conn = await userPool.getConnection()
-        return await conn.query(`SELECT * FROM TBL_SESSIONS WHERE SessionID = ?;`, [`${SessionID}`])
-    } catch (error) {
-        console.log(error)
-    } finally {
-        if(conn) conn.release()
-    }
+    return new Promise((resolve, reject) => {
+        db.all('SELECT * FROM TBL_SESSIONS WHERE SessionID = ?', [SessionID],
+        (err, rows) => {
+            if (err) 
+                reject(err)
+            else 
+                resolve(rows)
+        })
+    })
 }
 
 // adds a new session to the TBL_SESSIONS table.
 async function addSession(SessionID, Email) {
-    let conn
-    try {
-        conn = await userPool.getConnection()
-        return await conn.query(`INSERT INTO TBL_SESSIONS values (?, ?, CURDATE());`, [`${SessionID}`, `${Email}`])
-    } catch (error) {
-        console.log(error)
-    } finally {
-        if(conn) conn.release()
-    }
+    return new Promise((resolve, reject) => {
+        db.run('INSERT INTO TBL_SESSIONS VALUES (?, ?, date("now"))', 
+        [SessionID, Email], 
+        (err) => {
+            if (err) 
+                reject(err)
+            else 
+                resolve()
+        })
+    })
 }
 
 // removes a given session by value.
 async function removeSession(SessionID) {
-    let conn
-    try {
-        conn = await userPool.getConnection()
-        return conn.query(`DELETE FROM TBL_SESSIONS WHERE SessionID = ?;`, [`${SessionID}`])
-    } catch (error) {
-        console.log(error)
-    } finally {
-        if(conn) conn.release()
-    }
+    return new Promise((resolve, reject) => {
+        db.run('DELETE FROM TBL_SESSIONS WHERE SessionID = ?', [SessionID], 
+        (err) => {
+            if (err) 
+                reject(err)
+            else 
+                resolve()
+        })
+    })
 }
 
 // This POST takes care of registering an account.
@@ -159,14 +130,11 @@ app.post('/api/users', async (req, res) => {
     try {
         let { FirstName, LastName, Email, Password } = req.body
         let newUser = new User(FirstName, LastName, Email, Password)
-        // send to database yada yada
-        let response = await addUser(newUser)
-        if(response)
-            res.status(200).json(newUser)
-        else
-            res.status(401).json(newUser)
+        await addUser(newUser)
+        res.status(200).json(newUser)
     } catch (error) {
         console.log(error)
+        res.status(500).json({error: 'Internal servor error'})
     }
 })
 
@@ -184,35 +152,45 @@ app.post('/api/sessions', async (req, res) => {
             res.status(200).json(user)
         }
         else
-            res.status(401).json(rows)
+            res.status(401).json({error: 'Invalid credentials'})
 
     } catch (error) {
         console.log(error)
+        res.status(500).json({error: 'Internal servor error'})
     }
 })
 
 
 // This DELETE lets us remove a session from the database.
 app.delete('/api/sessions', async (req, res) => {
-    const { SessionID } = req.query
-    const response = await removeSession(SessionID)
-    if(response){
+    try {
+        const { SessionID } = req.query
+        await removeSession(SessionID)
         res.status(200).json('Success')
-    }
-    else {
-        res.status(404).json('Error')
+    } catch (error) {
+        console.log(error)
+        res.status(500).json('Internal servor error')
     }
 })
 
 // This GET allows us to sign in once and stay signed in with the session.
 app.get('/api/sessions', async (req, res) => {
-    const { SessionID } = req.query
-    const sessionRows = await getSession(SessionID)
-    if(sessionRows.length > 0)
-    {
-        const user = await getUser(sessionRows[0].Email) // This is needed so that we place 
-        res.status(200).json(user)
+    try {
+        const { SessionID } = req.query
+        const sessionRows = await getSession(SessionID)
+        if(sessionRows.length > 0)
+        {
+            const user = await getUser(sessionRows[0].Email)
+            res.status(200).json(user)
+        } 
+        else {
+            res.status(401).json({error: 'Session expired, please sign in again'})
+        }
+    } catch (error) {
+        console.log(error)
+        res.status(500).json({error: 'Internal servor error'})
     }
+    
 })
 
 const port = process.env.port || 3000;
