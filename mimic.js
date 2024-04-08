@@ -142,17 +142,23 @@ app.post('/api/users', async (req, res) => {
 app.post('/api/sessions', async (req, res) => {
     try {
         let { Email, Password } = req.body
-        const rows = await loginUser(Email, Password)
-        if(rows.length > 0)
-        {
-            const SessionID = req.sessionID // generates a new SessionID for our user every time login button is used correctly.
-            const user = rows[0]
-            user.SessionID = SessionID
-            const session = await addSession(SessionID, Email)
-            res.status(200).json(user)
+        // means that no such user exists
+        if((await getUser(Email)).length < 1) {
+            res.status(404).json({error: 'No such user exists'})
         }
-        else
-            res.status(401).json({error: 'Invalid credentials'})
+        else {
+            const rows = await loginUser(Email, Password)
+            if(rows.length > 0)
+            {
+                const SessionID = req.sessionID // generates a new SessionID for our user every time login button is used correctly.
+                const user = rows[0]
+                user.SessionID = SessionID
+                const session = await addSession(SessionID, Email)
+                res.status(200).json(user)
+            }
+            else
+                res.status(401).json({error: 'Invalid credentials'})
+        }
 
     } catch (error) {
         console.log(error)

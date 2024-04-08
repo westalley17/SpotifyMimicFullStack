@@ -21,6 +21,19 @@
     background-color: #1ce663; /* lighter shade of green on hover */
 }
 
+.btn-logout {
+    background-color: #f03017; /* Spotify's green color */
+    border: none; /* Remove default button border */
+    border-radius: 25px; /* Adjust the border radius to make it more rounded */
+    padding: 10px 20px; /* Add padding to make the button bigger */
+    font-size: 14px; /* Adjust font size */
+    cursor: pointer; /* Change cursor to pointer on hover */
+}
+
+.btn-logout:hover {
+    background-color: #fd5a5a; /* lighter shade of green on hover */
+}
+
 .btn-toggle {
     color: #ffffff;
     border: none; /* Remove default button border */

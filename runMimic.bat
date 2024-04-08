@@ -1,1 +1,1 @@
-start cmd /k node mimic.js
+start cmd /k nodemon mimic.js

@@ -69,22 +69,23 @@
             </div>
         </div>
         <!--Spotify Mimic Dashboard-->
-        <div id="divMimic" class="card col-lg-4 bg-card" style="display: none;">
-            <div class="card-header">
-                <h2 class="text-white"><strong>Spotify Mimic</strong></h2>
+        <div id="divMimic" class="card col-lg-6 bg-card" style="display: none;">
+            <div id="divMimicHeader" class="row col-12">
+                <div class="col-8">
+                    <h1 class="text-white mt-2"><strong>Spotify Mimic</strong></h1>
+                </div>
+                <div class="col-4">
+                    <button class="float-end btn btn-logout mt-2 text-black"><strong>Log out</strong></button>
+                </div>
             </div>
+            <hr>
             <div id="divMimicBody" class="card-body">
-                <div class="card col-12">
-                    <div class="card-header">
-                        <h4 class="text-info">Your Library</h4>
-                    </div>
+                <h4 class="text-white">Your Library</h4>
+                <div class="card bg-card col-12">
                     <div class="card-body" id="divCardLibrary">
 
                     </div>
                 </div>
-            </div>
-            <div id="divMimicFooter" class="card-footer">
-                <button id="btnLogout" class="col-12 btn btn-danger mt-2">Logout</button>
             </div>
         </div>
     </div>
@@ -248,13 +249,11 @@
                             $('#divMimic').slideDown("slow")
                         })
                     },
-                    error: function (error) {
-                        // incorrect password, empty field
+                    error: function (result) {
                         $('#txtLoginPassword').val('')
-                        console.log(error)
                         Swal.fire({
-                            title: 'Incorrect password!',
-                            icon: 'error'
+                            title: result.responseJSON.error,
+                            icon: 'error',
                         })
                     }
                 })
@@ -266,7 +265,7 @@
                 This button logs the user out by first deleting their sessionID from the database.
                 It then proceeds to remove it from SessionStorage on the frontend.
         */
-        $('#btnLogout').on('click', function () {
+        $('.btn-logout').on('click', function () {
             let strSessionID = sessionStorage.getItem('SessionID');
             // pass to ajax delete
             $.ajax({
