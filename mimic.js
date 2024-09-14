@@ -7,10 +7,6 @@ class User {
         this.Password = password
         this.SessionID = sessionID
     }
-
-    getPassword() { return this.Password } 
-    getEmail() { return this.Email }
-    getFullName() { return this.FirstName + ' ' + this.LastName }
 }
 
 // This block of requires is needed to use Express.JS and MariaDB with some other needed libraries.
@@ -36,7 +32,7 @@ app.use(session({
     },
     secret: 'e67a3d2a6851d3c7c5a03b78951d0d4c304b51a17d89113d7f7b02b7e63b8091',
     resave: false,
-    saveUninitialized: true
+    saveUninitialized: true,
 }))
 
 // Creates necessary tables ONLY if they don't already exist.
@@ -52,7 +48,7 @@ async function addUser(newUser) {
         [newUser.FirstName, newUser.LastName, newUser.Email, newUser.Password],
         (err) => {
             if (err)
-                reject(err)
+                reject('Account with that email already exists!')
             else 
                 resolve()
         })
@@ -128,20 +124,25 @@ async function removeSession(SessionID) {
 // This POST takes care of registering an account.
 app.post('/api/users', async (req, res) => {
     try {
-        let { FirstName, LastName, Email, Password } = req.body
+        let FirstName = req.body.FirstName
+        let LastName = req.body.LastName
+        let Email = req.body.Email
+        let Password = req.body.Password
+
         let newUser = new User(FirstName, LastName, Email, Password)
         await addUser(newUser)
         res.status(200).json(newUser)
     } catch (error) {
         console.log(error)
-        res.status(500).json({error: 'Internal servor error'})
+        res.status(500).json({error: 'Account with that email already exists'})
     }
 })
 
 // This GET takes care of logging into an account.
 app.post('/api/sessions', async (req, res) => {
     try {
-        let { Email, Password } = req.body
+        let Email = req.body.Email
+        let Password = req.body.Password
         // means that no such user exists
         if((await getUser(Email)).length < 1) {
             res.status(404).json({error: 'No such user exists'})
@@ -170,19 +171,19 @@ app.post('/api/sessions', async (req, res) => {
 // This DELETE lets us remove a session from the database.
 app.delete('/api/sessions', async (req, res) => {
     try {
-        const { SessionID } = req.query
+        const SessionID = req.body.SessionID
         await removeSession(SessionID)
         res.status(200).json('Success')
     } catch (error) {
         console.log(error)
-        res.status(500).json('Internal servor error')
+        res.status(500).json({error: 'Internal servor error'})
     }
 })
 
 // This GET allows us to sign in once and stay signed in with the session.
 app.get('/api/sessions', async (req, res) => {
     try {
-        const { SessionID } = req.query
+        const SessionID = req.query.SessionID
         const sessionRows = await getSession(SessionID)
         if(sessionRows.length > 0)
         {
