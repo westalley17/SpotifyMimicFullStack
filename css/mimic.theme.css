@@ -1,0 +1,62 @@
+.bg-card {
+    background-image: linear-gradient(#0c0c0c, #1c1b1b);
+    border-radius: 2%;
+    padding: 50px;
+}
+
+.bg-main {
+    background-image: linear-gradient(#1c1b1b, #000000);
+}
+
+.btn-submit {
+    background-color: #1db954; /* Spotify's green color */
+    border: none; /* Remove default button border */
+    border-radius: 25px; /* Adjust the border radius to make it more rounded */
+    padding: 10px 20px; /* Add padding to make the button bigger */
+    font-size: 14px; /* Adjust font size */
+    cursor: pointer; /* Change cursor to pointer on hover */
+}
+
+.btn-submit:hover {
+    background-color: #1ce663; /* lighter shade of green on hover */
+}
+
+.btn-logout {
+    background-color: #f03017; /* Spotify's green color */
+    border: none; /* Remove default button border */
+    border-radius: 25px; /* Adjust the border radius to make it more rounded */
+    padding: 10px 20px; /* Add padding to make the button bigger */
+    font-size: 14px; /* Adjust font size */
+    cursor: pointer; /* Change cursor to pointer on hover */
+}
+
+.btn-logout:hover {
+    background-color: #fd5a5a; /* lighter shade of green on hover */
+}
+
+.btn-toggle {
+    color: #ffffff;
+    border: none; /* Remove default button border */
+    padding: 0;
+}
+
+.btn-toggle:hover {
+    color: #1db954; /* Spotify's green color */
+}
+
+.input{
+    width: 100%;
+    padding: 10px;
+    margin: 5px 0;
+    box-sizing: border-box;
+    border: 1px solid #bdbdbd;
+    border-radius: 3px;
+    background-color: transparent;
+    font-size: 16px;
+    color: #ffffff;
+}
+
+.input:hover {
+    margin: 5px 0;
+    border: 1px solid #ffffff;
+}

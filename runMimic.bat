@@ -1,2 +1,1 @@
-start cmd /k node app.js
-start cmd /k mariaDB.bat
+start cmd /k nodemon mimic.js

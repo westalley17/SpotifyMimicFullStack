@@ -4,85 +4,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Spotify Mimic</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
-        integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <title>Spotify</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/mimic.theme.css">
 </head>
 <!--
     SPOTIFY MIMIC! 
     This mimic will entail the following functionality:
     1. It will be able to register an account that will be linked to a future database with their library of songs.
-    2. It will be able to log in to said account.
-    3. It's dashboard (once logged in) will populate with tables filled with the user's library/libraries. (multiple pages? tables?)
-    4. The user will then be able to sort their library and song queue however they please. (going to use datatables.net for this)
-    5. The user will also be able to delete songs from their library(ies) at will which will update their database records. (PUT)
-    6. The user will be able to ADD songs by choosing from a tabled list that is returned from a GET.
+    2. It will be able to log in to said account, generating a session and adding it to a table.
+    3. It will be able to log out of said account, removing the session from client-side storage and the table.
+    4. Its dashboard (once logged in) will populate with tables filled with the user's library/libraries. (multiple pages? tables?)
+    5. The user will then be able to sort their library and song queue however they please. (going to use datatables.net for this)
+    6. The user will also be able to delete songs from their library(ies) at will which will update their database records. (PUT)
+    7. The user will be able to ADD songs by choosing from a tabled list that is returned from a GET.
 -->
-<body class="bg-dark">
+
+<body class="bg-main">
     <div class="d-flex vh-100 col-12 justify-content-center align-items-center">
         <!--LOGIN CARD-->
-        <div id="divLogin" class="card col-lg-4">
-            <div class="card-header">
-                <h2>Login to the Spotify Mimic</h2>
-            </div>
+        <div id="divLogin" class="card col-lg-4 bg-card">
             <div class="card-body">
+                <h1 class="text-white"><strong>Log in to Spotify</strong></h1>
+                <hr>
                 <form>
                     <div class="form-group mt-2">
-                        <label for="txtLoginEmail" class="form-label"> Email </label>
-                        <input placeholder="johndoe@gmail.com" type="email" class="form-control mb-2"
-                            id="txtLoginEmail">
-                        <label for="txtLoginPassword" class="form-label"> Password </label>
-                        <input placeholder="notJohn1234" type="password" class="form-control mb-3"
-                            id="txtLoginPassword">
+                        <label for="txtLoginEmail" class="form-label text-white"> Email or username </label>
+                        <input placeholder="Email or username" type="email" class="input mb-2" id="txtLoginEmail">
+                        <label for="txtLoginPassword" class="form-label text-white"> Password </label>
+                        <input placeholder="Password" type="password" class="input mb-3" id="txtLoginPassword">
                     </div>
-                    <button class="btn btn-primary col-12" id="btnLogin" type="button"> Login </button>
-                    <button class="col-12 btn btn-secondary mt-1 btnToggle" type="button" data-type="login"> Need an
-                        account? </button>
+                    <button class="btn col-12 btn-submit text-black" id="btnLogin" type="button"><strong>Log
+                            in</strong></button>
+                    <hr>
+                    <button class="btn col-12 btn-toggle" type="button" data-type="login">Sign up for
+                        Spotify</button>
                 </form>
             </div>
         </div>
         <!--REGISTRATION CARD-->
-        <div id="divRegister" class="card col-lg-4" style="display:none;">
-            <div class="card-header">
-                <h3>Register for the Spotify Mimic</h3>
-            </div>
+        <div id="divRegister" class="card col-lg-4 bg-card" style="display: none;">
             <div class="card-body">
+                <h1 class="text-white"><strong>Sign up for Spotify</strong></h1>
+                <hr>
                 <form>
                     <div class="form-group">
                         <label for="txtFirstName" class="form-label"> First Name </label>
-                        <input placeholder="John" id="txtFirstName" class="form-control">
+                        <input placeholder="John" id="txtFirstName" class="input">
                         <label for="txtLastName" class="form-label"> Last Name </label>
-                        <input placeholder="Smith" id="txtLastName" class="form-control">
+                        <input placeholder="Smith" id="txtLastName" class="input">
                     </div>
                     <div class="form-group mt-3">
                         <label for="txtEmail" class="form-label"> Email </label>
-                        <input placeholder="johndoe@gmail.com" id="txtEmail" class="form-control" type="email">
+                        <input placeholder="johndoe@gmail.com" id="txtEmail" class="input" type="email">
                         <label for="txtPassword" class="form-label"> Password </label>
-                        <input placeholder="notJohn1234" id="txtPassword" class="form-control" type="password">
+                        <input placeholder="notJohn1234" id="txtPassword" class="input" type="password">
                     </div>
-                    <button class="col-12 btn btn-primary mt-3" id="btnRegister" type="button"> Register </button>
-                    <button class="col-12 btn btn-secondary mt-1 btnToggle" type="button" data-type="register"> Return
+                    <button class="col-12 btn btn-submit text-black mt-3" id="btnRegister"
+                        type="button"><strong>Register</strong></button>
+                    <hr>
+                    <button class="col-12 btn mt-1 btn-toggle" type="button" data-type="register"> Return
                         to Login </button>
                 </form>
             </div>
         </div>
         <!--Spotify Mimic Dashboard-->
-        <div id="divMimic" class="card col-lg-4" style="display: none;">
-            <div class="card-header">
-                <h2>Spotify Mimic</h2>
+        <div id="divMimic" class="card col-lg-6 bg-card" style="display: none;">
+            <div id="divMimicHeader" class="row col-12">
+                <div class="col-8">
+                    <h1 class="text-white mt-2"><strong>Spotify Mimic</strong></h1>
+                </div>
+                <div class="col-4">
+                    <button class="float-end btn btn-logout mt-2 text-black"><strong>Log out</strong></button>
+                </div>
             </div>
+            <hr>
             <div id="divMimicBody" class="card-body">
-                <div class="card col-12">
-                    <div class="card-header">
-                        <h4>Your Library</h4>
-                    </div>
+                <h4 class="text-white">Your Library</h4>
+                <div class="card bg-card col-12">
                     <div class="card-body" id="divCardLibrary">
 
                     </div>
                 </div>
-            </div>
-            <div id="divMimicFooter" class="card-footer">
-                <button id="btnLogout" class="col-12 btn btn-danger mt-2">Logout</button>
             </div>
         </div>
     </div>
@@ -101,40 +104,42 @@
                 and 2) the SessionID matches with the user.
         */
 
-        $(document).ready(function() {
+        $(document).ready(function () {
             const SessionID = sessionStorage.getItem('SessionID')
-            if(SessionID) {
+            if (SessionID) {
                 $.ajax({
                     url: 'http://localhost:3000/api/sessions?SessionID=' + SessionID,
                     type: 'GET',
                     contentType: 'application/json',
-                    success: function(account) {
+                    success: function (account) {
                         //$('#divCardLibrary').append() // APPEND THEIR LIBRARY!
-                        $('#divLogin').slideUp(function() {
+                        $('#divLogin').slideUp(() => {
                             $('#divMimic').slideDown()
                         })
                     },
-                    error: function(error) {
-                        console.log(error)
+                    error: function (result) {
+                        console.log(result.error)
+                        sessionStorage.removeItem('SessionID') // this line removes the SessionID from storage in the event that the user is removed from the 
+                                                               // database (which cascade deletes the session) 
                     }
                 })
-            }   
+            }
         })
 
         /*
             Function: to toggle back and forth between the register and login cards.
                 Nothing special.
         */
-        
-        $('.btnToggle').on('click', function () {
+
+        $('.btn-toggle').on('click', function () {
             let page = $(this).attr('data-type');
             if (page == 'login') {
-                $('#divLogin').slideToggle(function () {
-                    $('#divRegister').slideToggle();
+                $('#divLogin').slideToggle("slow", () => {
+                    $('#divRegister').slideToggle("slow");
                 })
             } else {
-                $('#divRegister').slideToggle(function () {
-                    $('#divLogin').slideToggle();
+                $('#divRegister').slideToggle("slow", () => {
+                    $('#divLogin').slideToggle("slow");
                 })
             }
         })
@@ -189,8 +194,8 @@
                             title: 'Successful account creation!',
                             icon: 'success'
                         })
-                        $('#divRegister').slideUp(function () {
-                            $('#divLogin').slideDown()
+                        $('#divRegister').slideUp("slow", () => {
+                            $('#divLogin').slideDown("slow")
                         })
                     },
                     error: function (response) {
@@ -241,18 +246,18 @@
                     }),
                     success: function (LoginAccount) {
                         sessionStorage.setItem('SessionID', LoginAccount.SessionID)
-                            //$('#divCardLibrary').append() // This will be filled later by actual relevant data to the user.
-                        $('#divLogin').slideUp(function () {
-                            $('#divMimic').slideDown()
+                        //$('#divCardLibrary').append() // This will be filled later by actual relevant data to the user.
+                        $('#divLogin').slideUp("slow", () => {
+                            $('#divMimic').slideDown("slow")
+                            $('#txtLoginEmail').val('')
+                            $('#txtLoginPassword').val('')
                         })
                     },
-                    error: function (error) {
-                        // incorrect password, empty field
+                    error: function (result) {
                         $('#txtLoginPassword').val('')
-                        console.log(error)
                         Swal.fire({
-                            title: 'Incorrect password!',
-                            icon: 'error'
+                            title: result.responseJSON.error,
+                            icon: 'error',
                         })
                     }
                 })
@@ -264,21 +269,20 @@
                 This button logs the user out by first deleting their sessionID from the database.
                 It then proceeds to remove it from SessionStorage on the frontend.
         */
-        $('#btnLogout').on('click',function(){
+        $('.btn-logout').on('click', function () {
             let strSessionID = sessionStorage.getItem('SessionID');
             // pass to ajax delete
             $.ajax({
                 url: 'http://localhost:3000/api/sessions?SessionID=' + strSessionID,
                 type: 'DELETE',
                 contentType: 'application/json',
-                success: function() {
-                    Swal.fire({
-                        title: 'Deleted Session!',
-                        text: 'Successfully removed your session!',
-                        icon: 'success'
+                success: function () {
+                    sessionStorage.removeItem('SessionID');
+                    $('#divMimic').slideUp("slow", () => {
+                        $('#divLogin').slideDown("slow")
                     })
                 },
-                error: function() {
+                error: function () {
                     Swal.fire({
                         title: 'Error!',
                         text: 'Error when removing session id!',
@@ -286,15 +290,7 @@
                     })
                 }
             })
-            // then do this
-            sessionStorage.removeItem('SessionID');
-            $('#divMimic').slideUp(function() {
-                $('#divLogin').slideDown()
-            })
         })
-
-        // download MySQL Workbench
-
 
     </script>
 </body>
